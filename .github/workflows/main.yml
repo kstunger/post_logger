@@ -1,4 +1,4 @@
-name: Certificate Data docker image
+name: Docker image
 
 on:
   push:
