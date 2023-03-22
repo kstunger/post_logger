@@ -2,16 +2,27 @@
 const http = require('http');
 const url = require('url');
 
+const MAX_REQUEST_SIZE = 1 * 1024 * 1024; // 1 MB
+
 // Create http server.
 let server = http.createServer((req, res) => {
   if (req.method == "POST") {
     var postData = '';
     req.on('data', function (chunk) {
-      postData += chunk;
+      if (postData.length + chunk.length > MAX_REQUEST_SIZE) {
+        console.error('Request too large.');
+        req.abort();
+      } else {
+        postData += chunk;
+      }
     });
 
     req.on('end', function () {
-      console.log(req.socket.remoteAddress + ": " + postData);
+      try {
+        console.log(req.socket.remoteAddress + ": " + postData);
+      } catch (err) {
+        console.error('Error while logging data: ' + err.message);
+      }
     });
 
     req.setTimeout(10000, function() {
@@ -24,9 +35,18 @@ let server = http.createServer((req, res) => {
       req.abort();
     });
   }
-  res.writeHead(200);
-  res.end();
+  
+  try {
+    res.writeHead(200);
+    res.end();
+  } catch (err) {
+    console.error('Error while sending response: ' + err.message);
+  }
 });
 
-server.listen(5007);
-console.log('Listening on http://localhost:5007/');
+try {
+  server.listen(5007);
+  console.log('Listening on http://localhost:5007/');
+} catch (err) {
+  console.error('Error while starting server: ' + err.message);
+}
