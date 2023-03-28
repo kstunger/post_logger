@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:19
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 
-RUN npm install
+RUN npm install -g pm2
 # If you are building your code for production
 # RUN npm ci --only=production
 
@@ -16,4 +16,6 @@ RUN npm install
 COPY . .
 
 EXPOSE 5007
-CMD [ "node", "server.js" ]
+
+# Start the Node.js process using pm2
+CMD ["pm2-runtime", "server.js", "--name", "my-app", "--cron-restart", "0 6 * * *"]
